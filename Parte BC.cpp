@@ -19,11 +19,11 @@ uint8_t modo = 0; // 0 = decimal, 1 = binario
 unsigned long ultimoSube = 0;
 unsigned long ultimoBaja = 0;
 unsigned long ultimoModo = 0;
-const unsigned long retardo = 200;
+const unsigned long retardo = 200; //Antirrebote
 
-bool estadoSubeAnterior = HIGH;
-bool estadoBajaAnterior = HIGH;
-bool estadoModoAnterior = LOW;  // Por ser pull-down, inicia en LOW
+bool subeAnt = HIGH;
+bool bajaAnt = HIGH;
+bool modoAnt = LOW;  // Por ser pull-down, inicia en LOW
 
 // Prototipos
 void apagarTodosLEDs(void);
@@ -47,20 +47,21 @@ void setup() {
 void loop() {
   unsigned long ahora = millis();
 
-  // --- BOTÓN SUBIR ---
-  bool estadoSube = digitalRead(botonSube);
-  if (estadoSubeAnterior == HIGH && estadoSube == LOW && ahora - ultimoSube > retardo) {
+  // Cambio de HIGH a LOW
+  bool subeAct = digitalRead(botonSube);
+  if (subeAnt == HIGH && subeAct == LOW && ahora - ultimoSube > retardo) {
     contador++;
     if (modo == 0 && contador > 3) contador = 0;
-    if (modo == 1 && contador > 15) contador = 0;
+    if (modo == 1 && contador > 15) contador = 0; //Si supera el límite se reinicia
     mostrarLED(contador);
+    //Se actualiza el estado anterior para la proxima vuelta
     ultimoSube = ahora;
   }
-  estadoSubeAnterior = estadoSube;
+  subeAnt = subeAct;
 
-  // --- BOTÓN BAJAR ---
-  bool estadoBaja = digitalRead(botonBaja);
-  if (estadoBajaAnterior == HIGH && estadoBaja == LOW && ahora - ultimoBaja > retardo) {
+  //Para decrementar
+  bool bajaAct = digitalRead(botonBaja);
+  if (bajaAnt == HIGH && bajaAct == LOW && ahora - ultimoBaja > retardo) {
     if (contador == 0) {
       contador = (modo == 0) ? 3 : 15;
     } else {
@@ -69,17 +70,17 @@ void loop() {
     mostrarLED(contador);
     ultimoBaja = ahora;
   }
-  estadoBajaAnterior = estadoBaja;
+  bajaAnt = bajaAct;
 
-  // --- BOTÓN MODO (PULL-DOWN: detectamos flanco ASCENDENTE)
-  bool estadoModo = digitalRead(botonModo);
-  if (estadoModoAnterior == LOW && estadoModo == HIGH && ahora - ultimoModo > retardo) {
-    modo = !modo;
+  // BOTÓN MODO (PULL-DOWN: detectamos flanco ASCENDENTE)
+  bool modoAct = digitalRead(botonModo);
+  if (modoAnt == LOW && modoAct == HIGH && ahora - ultimoModo > retardo) {
+    modo = !modo; //Cmabia de modo decimal a binario
     contador = 0;
     mostrarLED(contador);
     ultimoModo = ahora;
   }
-  estadoModoAnterior = estadoModo;
+  modoAnt = modoAct;
 }
 
 // Apaga todos los LEDs
@@ -114,6 +115,7 @@ void mostrarLED(uint8_t valor) {
 }
 
 // Modo binario con desplazamientos simples
+//Si el bit está en 1, enciende el LED que corresponde
 void mostrarBinario(uint8_t valor) {
   // Bit 0 --> LED Azul
   if ((valor >> 0) & 1) digitalWrite(ledAzul, HIGH);
