@@ -1,6 +1,7 @@
 // Daniela López
 // 22/07/2025
 
+//Aquí inlcuyo la librería principal para usar pinMode, digitalWrite.
 #include <Arduino.h>
 #include <stdint.h>
 
@@ -15,7 +16,7 @@
 
 // Prototipos
 void apagarTodosLEDs(void);
-void mostrarLED(uint8_t valor);
+void mostrarLED(uint8_t valor); //Esta función enciende el Led correspondiende
 
 // Variables
 uint8_t contador = 0;
@@ -23,8 +24,8 @@ unsigned long ultimoSube = 0;
 unsigned long ultimoBaja = 0;
 const unsigned long retardo = 200;
 
-bool estadoSubeAnterior = HIGH;
-bool estadoBajaAnterior = HIGH;
+bool subeAnt = HIGH;
+bool bajaAnt = HIGH;
 
 void setup() {
   // Configurar LEDs como salida
@@ -43,20 +44,20 @@ void setup() {
 
 void loop() {
   // Leer estado de los botones
-  bool estadoSubeActual = digitalRead(botonSube);
-  bool estadoBajaActual = digitalRead(botonBaja);
+  bool subeAct = digitalRead(botonSube);
+  bool bajaAct = digitalRead(botonBaja);
   unsigned long ahora = millis();
 
   //Botón para INCREMENTAR (sube)
-  if (estadoSubeAnterior == HIGH && estadoSubeActual == LOW && ahora - ultimoSube > retardo) {
+  if (subeAnt == HIGH && subeAct == LOW && ahora - ultimoSube > retardo) {
     contador++;
-    if (contador > 3) contador = 0;
-    mostrarLED(contador);
+    if (contador > 3) contador = 0; //Si pasa de 3 regresa a 0
+    mostrarLED(contador); //Actualiza el Led
     ultimoSube = ahora;
   }
 
   //Botón para DECREMENTAR (baja)
-  if (estadoBajaAnterior == HIGH && estadoBajaActual == LOW && ahora - ultimoBaja > retardo) {
+  if (bajaAnt == HIGH && bajaAct == LOW && ahora - ultimoBaja > retardo) {
     if (contador == 0)
       contador = 3;
     else
@@ -66,8 +67,8 @@ void loop() {
   }
 
   // Guardar estados para detectar cambios en la siguiente vuelta
-  estadoSubeAnterior = estadoSubeActual;
-  estadoBajaAnterior = estadoBajaActual;
+  subeAnt = subeAct;
+  bajaAnt = bajaAct;
 }
 
 // Apagar todos los LEDs
@@ -80,7 +81,7 @@ void apagarTodosLEDs(void) {
 
 //Enciendo leds correspondiente al contador
 void mostrarLED(uint8_t valor) {
-  apagarTodosLEDs();
+  apagarTodosLEDs(); //Apago todos para que no haya problema
   switch (valor) {
     case 0:
       digitalWrite(ledAzul, HIGH);
